@@ -106,5 +106,22 @@ func (s *StepRun) Cleanup(state multistep.StateBag) {
 				ui.Error(fmt.Sprintf("Error stopping VM: %s", err))
 			}
 		}
+
+		// See if it is running
+		running, _ := driver.IsRunning(s.vmxPath)
+		for i := 0; i < 5; i++ {
+			// Check if VM is running
+
+			// If VM not running delete it
+			if err == nil && !running {
+				ui.Say("Deleting virtual machine...")
+				if err = driver.Delete(vmxPath); err == nil {
+					// If all good break out of the loop
+					break
+				}
+			}
+			// Otherwise wait some time and try again
+			time.Sleep(1 * time.Second * time.Duration(i))
+		}
 	}
 }
